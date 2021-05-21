@@ -1,6 +1,7 @@
 FROM ubuntu:latest
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y
-RUN apt-get install -y python3 python3-pip python3-dev build-essential
+RUN apt-get install -y python3 python3-pip python3-dev build-essential libxml2-dev libxslt-dev
 COPY . /app
 WORKDIR /app
 RUN pip3 install -r requirements.txt

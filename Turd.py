@@ -177,7 +177,7 @@ def delete_file():
         <a href="/logout">log out</a>
         ''' % files
     else:
-        os.remove(configuration['web_root'] + "/" + user_file)
+        os.remove(configuration['web_root'] + "/" + username + "/" + user_file)
         return '''
         <!doctype html>
         <title>File deleted</title>
