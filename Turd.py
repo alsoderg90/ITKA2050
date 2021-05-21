@@ -6,6 +6,7 @@ import subprocess
 import threading
 import filetype
 import time
+import hmac
 
 
 # Load configuration file
@@ -54,11 +55,12 @@ def login():
         If user gives a filename that file is sent to user, otherwise
         user is shown a file listing
     """
+    
     username = request.form.get('user')
     password = request.form.get('password')
     if username and password:
 
-        if users.get(username) == password:
+        if hmac.compare_digest(users.get(username), password):
             
             resp = make_response("""
               <!doctype html>
