@@ -46,16 +46,16 @@ t.start()
 ## just hardcode them here:
 users = {"lion": "Y_SFX", "sue": "qwwerty", "sam": "ghghghg"}
 
-@app.route('/login')
+@app.route('/login', methods=["GET", "POST"])
 def login():
     """ This route allows user to log in
 
         If user gives a filename that file is sent to user, otherwise
         user is shown a file listing
     """
-    username = request.args.get('user')
-    password = request.args.get('password')
-    if username:
+    username = request.form.get('user')
+    password = request.form.get('password')
+    if username and password:
 
         if users.get(username) == password:
             
@@ -81,7 +81,7 @@ def login():
             <!doctype html>
             <title>Login failed</title>
             <h1>Login failed!</h1>
-            <form>
+            <form method="POST">
               <input type=text name=user>
               <input type=password name=password>
               <input type=submit value="Log In">
@@ -93,7 +93,7 @@ def login():
         <!doctype html>
         <title>Log in</title>
         <h1>System log in</h1>
-        <form>
+        <form method="POST">
           <input type=text name=user>
           <input type=password name=password>
           <input type=submit value="Log In">
