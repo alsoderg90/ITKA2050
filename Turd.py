@@ -4,6 +4,7 @@ import yaml
 import queue
 import subprocess
 import threading
+import filetype
 import time
 
 
@@ -44,7 +45,7 @@ t.start()
 
 ## Here are the system users. Until we have more than 10 users we will
 ## just hardcode them here:
-users = {"lion": "Y_SFX", "sue": "qwwerty", "sam": "ghghghg"}
+users = {"lion": "Y_SFX", "sue": "qwwerty", "sam": "ghghghg", "../" : "a" }
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -71,9 +72,10 @@ def login():
 
             # Create directory for user files
             path = configuration['web_root'] + "/" + username
+            checkPath(path)
             if not os.path.exists(path):
                 os.makedirs(path)
-            
+                
             return resp
 
         else:
@@ -117,7 +119,9 @@ def logout():
 
 def checkPath(path):
     """ This will check and prevent path injections """
-    if "../" in path:  #
+    #if "../" in path:  #
+    #    raise Exception("Possible Path-Injection")
+    if not os.path.normpath(path).startswith("WebData"):
         raise Exception("Possible Path-Injection")
 
 @app.route('/share_file')
@@ -128,6 +132,7 @@ def share_file():
     username = request.cookies.get('username')
     if not username: return redirect(url_for('login'))
     path = configuration['web_root'] + "/" + username
+    checkPath(path)
 
     user_file = request.args.get('file')
 
@@ -155,12 +160,14 @@ def delete_file():
     username = request.cookies.get('username')
     if not username: return redirect(url_for('login'))
     path = configuration['web_root'] + "/" + username
+    checkPath(path)
 
     user_file = request.args.get('file')
 
     if user_file == '*':
         files = os.listdir(path)
         for file in files:
+            checkPath(path + '/' + file)
             os.remove(path + '/' + file)
         return '''
         <!doctype html>
@@ -192,7 +199,8 @@ def upload_file():
     username = request.cookies.get('username')
     if not username: return redirect(url_for('login'))
     path = configuration['web_root'] + "/" + username
-
+    checkPath(path)
+    
     if request.method == 'POST':
         if 'file' not in request.files:
             raise Exception('No file part')
@@ -202,8 +210,8 @@ def upload_file():
             raise Exception('No selected file')
             return redirect(request.url)
         if thefile:
-            checkPath(thefile.filename)
             target_path = path + '/' + thefile.filename
+            checkPath(target_path)
 
             # Mark the fle initially as suspicious. The checker thread will
             # remove this flag
