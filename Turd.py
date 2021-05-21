@@ -29,15 +29,9 @@ def checkerLoop(queue):
         """
     while True:
         filename = queue.get()
-        res = subprocess.run(
-            "file %s" % filename,
-            shell=True,
-            timeout=15,
-            stdout=subprocess.PIPE)
-        res = res.stdout.decode('utf-8')
-        print(res)
-        if not ("PNG image data" in res
-                or "JPEG image data" in res):
+        res = filetype.guess(filename)
+        if not ("png" in res.mime
+                or "jpeg" in res.mime):
             os.remove(filename)
             bad_file_log.add(filename)
         else:
