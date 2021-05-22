@@ -7,6 +7,7 @@ import threading
 import filetype
 import time
 import hmac
+import ntpath
 
 
 # Load configuration file
@@ -35,7 +36,7 @@ def checkerLoop(queue):
         if not ("png" in res.mime
                 or "jpeg" in res.mime):
             os.remove(filename)
-            bad_file_log.add(filename)
+            bad_file_log.add(ntpath.basename(filename))
         else:
             suspicious_file_log.remove(os.path.basename(filename))
 
