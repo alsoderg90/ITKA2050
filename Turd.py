@@ -8,7 +8,7 @@ import filetype
 import time
 import hmac
 import ntpath
-
+from functools import wraps
 
 # Load configuration file
 configuration = {}
@@ -17,6 +17,16 @@ with open("app.config.yaml") as stream:
     configuration = yaml.load(stream)
 
 app = Flask(__name__)
+
+def user(f):
+    ''' Tämä decorator hoitaa kirjautumisen tarkistamisen ja ohjaa tarvittaessa kirjautumissivulle
+    '''
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not 'user' in session:
+           return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
 
 # Some global variables
 bad_file_log = set()            # Set of known dangerous files in service
@@ -45,8 +55,9 @@ def checkerLoop(queue):
 t = threading.Thread(target=checkerLoop, args=(checker_queue, ))
 t.start()
 
-## Here are the system users. Until we have more than 10 users we will
-## just hardcode them here:
+
+## oikeassa toteutuksessa ei luonnollisesti tunnuksia kirjotettaisi ohjelmakoodin sekaan
+## ja salasanoista on laskettu tiivisteet tietokantaan
 users = {"lion": "Y_SFX", "sue": "qwwerty", "sam": "ghghghg", "../" : "a" }
 
 @app.route('/login', methods=["GET", "POST"])
@@ -70,8 +81,7 @@ def login():
               You can now <a href="/user_content">check your files</a>
               """)
 
-            # Set login cookie in the user browser
-            resp.set_cookie('username', username)
+            session['user'] = "ok"
 
             # Create directory for user files
             path = configuration['web_root'] + "/" + username
@@ -107,6 +117,7 @@ def login():
 
 
 @app.route('/logout')
+@user
 def logout():
     """ This will log out the current user """
     username = request.cookies.get('username')
@@ -116,7 +127,7 @@ def logout():
             <h1>System log out</h1>
             User %s has been logged out
             ''' % username)
-    resp.set_cookie('username', expires=0)
+    session.pop("user",None)
     return resp
 
 
@@ -128,12 +139,10 @@ def checkPath(path):
         raise Exception("Possible Path-Injection")
 
 @app.route('/share_file')
+@user
 def share_file():
     """ This route handler will allow users to share files
     """
-
-    username = request.cookies.get('username')
-    if not username: return redirect(url_for('login'))
     path = configuration['web_root'] + "/" + username
     checkPath(path)
 
@@ -154,14 +163,12 @@ def share_file():
 
 
 @app.route('/delete_file')
+@user
 def delete_file():
     """ This route handler will allow users to delete files.
 
         If the file is '*' all user files are deleted
     """
-
-    username = request.cookies.get('username')
-    if not username: return redirect(url_for('login'))
     path = configuration['web_root'] + "/" + username
     checkPath(path)
 
@@ -193,14 +200,13 @@ def delete_file():
 
 
 @app.route('/upload_file', methods=['GET', 'POST'])
+@user
 def upload_file():
     """ This route handler will allow users to upload files
 
         If the request method is POST file is being uploaded. Otherwise
         we show a file upload prompt
     """
-    username = request.cookies.get('username')
-    if not username: return redirect(url_for('login'))
     path = configuration['web_root'] + "/" + username
     checkPath(path)
     
@@ -241,15 +247,13 @@ def upload_file():
 
 
 @app.route('/user_content')
+@user
 def serve_file():
     """ This route allows fetching user files
 
         If user gives a filename that file is sent to user, otherwise
         user is shown a file listing
     """
-    username = request.cookies.get('username')
-    if not username: return redirect(url_for('login'))
-
     user_file = request.args.get('file')
     if user_file:
         shared = shared_files.get(user_file)

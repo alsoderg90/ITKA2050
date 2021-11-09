@@ -1,40 +1,133 @@
 ## Harjoitustyöraportti
 
-Palauttajat (max 3): N.N,  N.N ja N.N
-Pisteitä yhteensä: 3.
+### Pisteet(3pt)
+1pt vian löytämisestä
+1pt vian korjaamisesta
+1pt vikatyypin eliminoimisesta
+
+Palauttajat (max 3): Alexander Södergård
+Pisteitä yhteensä: 17.
 
 ## Ongelma 1
+Tyyppi:   Polkuinjektio
+Sijainti: login(), rivi 80
+Kuvaus:
+Kirjautuessa sivustolle käyttäjälle luodaan oma kansio tiedostoille.
+Aliohjelmassa login ei kuitenkaan tarkasteta aiheuttaako käyttäjän nimimerkki
+polkuinjektion. Tämä mahdollistaisi sen, että käyttäjän on teoriassa mahdollista päästä
+toisten käyttäjien tiedostoihin käsiksi.
+
+### Esimerkkihyökkäys: 
+1) Rekisteröityminen onnistunut käyttäjänimellä "../WebData/Sue". (Sue olemassa oleva käyttäjänimi)
+2) Sue niminen kansio on jo luotu hakemistoon ja hyökkääjä pääsee tiedostoihin käsiksi.
+### Korjaus:
+Commit: https://github.com/alsoderg90/ITKA2050/commit/7872a884f26d1e0b457fa70cc3d54313425f4597
+- Korjasin siten, että ohjelma heittää poikkeuksen, jos käyttäjätunnus mahdollistaisi polkuinjektion.
+- Korjaus toimii koska polku normalisoidaan käyttäjänimen liittämisen jälkeen. Jos hakemisto ei ole oikea
+  ohjelma heittää poikkeuksen.
+- Korjaus estää uusien polkuinjektion syntymisen, koska polkuinjektion mahdollistavien 
+  käyttäjätunnusten käyttäminen ei ole mahdollista. Muokattu aliohjelmaa "checkpath" siten, että
+  tarkistetaan oikea hakemisto, eikä vain "../" sisältymistä merkkijonoon.
+### Pisteet(3pt)
+
+
+  
+## Ongelma 2
+Tyyppi:   Shell-injektio
+Sijainti: checkerLoop(queue)
+Kuvaus:
+Sovellus käytti komentotulkkia käynnistääkseen ohjelman tiedostotyypin määritystä varten. Tämä mahdollistaa
+shell-komentojen syöttämisen.
+
+### Esimerkkihyökkäys: 
+1) Tiedoston nimeksi on voitu määrittää esim. "testi.avi; rm *"
+2) Tiedosto ladataan sivulle
+3) Tiedostonimi välitetään komentotulkille ja kaikki sijainnissa olevat tiedostot poistetaan
+### Korjaus:
+Commit: https://github.com/alsoderg90/ITKA2050/commit/00d07504f2bb17a9442f4acc447cc40bf8736f5b
+- Käytettiin omaa kirjastoa tiedostotyypin määrittelyyn. Kirjasto myös tunnistaa oikeat tiedostomuodot
+  jos niitä on keinotekoisesti muutettu.
+- Korjaus toimii, koska ei mennä enää komentotulkin kautta.
+- Kirjastoa voidaan käyttää jatkossa, jos on syytä tarkistaa tiedostotyypit. 
+### Pisteet(3pt)
+
+
+## Ongelma 3
+Tyyppi:   Yleinen tietoturvaongelma
+Sijainti: login()
+Kuvaus:
+Url-osoitteessa näkyy kirjautumisen yhteydessä syötetyt käyttäjätiedot, joka voi paljastaa tiedot ulkopuolisille
+
+### Esimerkkihyökkäys: 
+1) Käyttäjä näkee url-osoitteen parametrit, jolloin pystyy kirjautumaan
+   käyttäjän tunnuksillla palveluun
+### Korjaus:
+Commit: https://github.com/alsoderg90/ITKA2050/commit/4c7f57bd5cf66297da27ec47c628174cd26e59ad
+- Kirjautumisessa vaihdettiin "GET" metodi "POST" metodiks.
+- "GET" metodin vaihto piilottaa käyttäjän syötteet url-osoitteesta ja haavoittovuus on korjattu.
+- Korjaus piilottaa kirjautuessa salasanat ja käyttäjätunnukset url-osoitteesta aina.
+### Pisteet(3pt)
+
+## Ongelma 4
+Tyyppi:   Yleinen tietoturvaongelma
+Sijainti: checkerLoop()
+Kuvaus:
+Hylättyjen tiedostojen tapauksissa näkyy tiedoston koko polku, jonka vuoksi käyttäjänimet ovat kaikkien nähtävälille
+
+### Esimerkkihyökkäys: 
+1) Käyttäjänimi näkyy tiedostonnimessä, jonka takia hyökkääjän tarvitsee enää vain kokeilemalla selvittää salasana käyttäjätunnukselle 
+### Korjaus:
+Commit: https://github.com/alsoderg90/ITKA2050/commit/c1237593bbf484f4e7daabc2886d4123040a2f70
+- Tiedosto lisätään ainoastaan tiedostonimellään, eikä koko tiedostopolulla kuten ennen
+- Ratkaisu toimii, koska toimivaksi todetun kirjaston avulla siivotaan nimestä kaikki muu paitsi tiedostonimi
+- Toimii jokaisen tiedoston kohdalla koska jokainen tiedosto menee saman funktion läpi
+### Pisteet(3pt)
+
+## Ongelma 5
+Tyyppi:   Ajastushyökkäys
+Sijainti: login()
+Kuvaus:
+Tietoa käyttäjätunnuksista ja salasanoista saadaan ajastushyökkäyksellä, koska merkkijonon vertailua ei suoritettu aina vakioajassa
+
+### Esimerkkihyökkäys: 
+1) Hyökkääjä vertaa tekemällään skrptillä kuinka kauan merkkijono vertailussa kestää
+2) Merkki kerrallaan selvitetään käyttäjätiedot
+3) Kun jokainen merkki on selvitetty, päästään käsiksi palveluun
+### Korjaus:
+Commit: https://github.com/alsoderg90/ITKA2050/commit/a804bc291d612a8b12fe18f3f2baaaab9f5f695c
+- Ongelma korjattiin käyttämällä funktiota joka vertailee merkkijonona vakio-ajassa
+- Korjaus toimii, sillä kirjastoa käytetään yleisesti
+- Jos vakioaikaista merkkijonon vertailua tarvitsee jatkossa, voidaan kirjastoa käyttää uudelleen
+### Pisteet(3pt)
+  
+## Ongelma 6
+Tyyppi:   Yleinen tietoturvaongelma
+Sijainti: login()
+Kuvaus:
+Palveluun pääsee sisälle asettamalla oikean evästeen manuaalisesti
+
+### Esimerkkihyökkäys: 
+Selaimen consoleen kirjoitetaan esimerkiksi "document.cookie="username=sam""
+### Korjaus:
+Commit: X
+- Ei ole korjattu, ainoastaan havaittu ongelma. Olisi kiva tietää oikea ratkaisu tähän
+ongelmaan
+### Pisteet(1pt)
+
+## Ongelma 7
 Tyyppi:   Polkuinjektio
 Sijainti: delete_file()
 Kuvaus:
 
 Aliohjelmassa delete_file ei tarkasteta käyttäjän syöttämää polkua
 millään tavalla. Tämä mahdollistaa sen, että käyttäjä tuhoaa minkä
-tahansa tiedoston, esimerkiksi toisen käyttäjän tiedoston tai vaikkapa
-jonkin järjestelmätiedoston.
+tahansa tiedoston, esimerkiksi toisen käyttäjän tiedoston.
 
 ### Esimerkkihyökkäys: 
-
 1) Kirjaudu sisään käyttäjänä "sam".
 2) Tee pyyntö /delete_file?file=../sue/tiedosto.txt
 3) Tulos: Suen tiedosto tuhotaan
-
 ### Korjaus:
-
-Commit: <git hash>
-
-Korjasin tämän näin... 
-
-Korjaus toimii koska... 
-
-Korjaus estää uuden polkuinjektion syntymisen, sillä uutta reittiä luotaessa...
-
+Commit: X
+- Ei ole korjattu, ainoastaan havaittu ongelma.
 ### Pisteet(3pt)
-
-1pt vian löytämisestä
-1pt vian korjaamisesta
-1pt vikatyypin eliminoimisesta
-
-## Ongelma 2
-
-...
