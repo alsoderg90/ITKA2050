@@ -109,10 +109,11 @@ Palveluun pääsee sisälle asettamalla oikean evästeen manuaalisesti
 ### Esimerkkihyökkäys: 
 Selaimen consoleen kirjoitetaan esimerkiksi "document.cookie="username=sam""
 ### Korjaus:
-Commit: X
-- Ei ole korjattu, ainoastaan havaittu ongelma. Olisi kiva tietää oikea ratkaisu tähän
-ongelmaan
-### Pisteet(1pt)
+Commit: https://github.com/alsoderg90/ITKA2050/commit/cb6391451c2de03c5a477f16dab550b19fa78b91
+- Sessiomuuttuja asetetaan kirjautumisen yhteydessä, ja voidaan määrittää 
+	kirjautumista vaativat sivut sen avulla
+- Decoratorin avulla voidaan helposti määritellä mitkä sivut vaativat kirjautumisen
+### Pisteet(3pt)
 
 ## Ongelma 7
 Tyyppi:   Polkuinjektio
